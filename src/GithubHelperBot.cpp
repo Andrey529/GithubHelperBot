@@ -8,48 +8,16 @@ GithubHelperBot::GithubHelperBot(const std::string &token) : token(token) {
     TgBot::InlineKeyboardMarkup::Ptr searchKeyboard = setUpSearchMenu();
     TgBot::InlineKeyboardMarkup::Ptr favouritesKeyboard = setUpFavouritesMenu();
 
-    bot.getEvents().onCommand("start", [&bot, &mainKeyboard](TgBot::Message::Ptr message) {
-        std::string text = "Привет, это GithubAwesomeBot.\n"
-                           "Бот может:\n"
-                           "1) Искать репозитории и пользователей\n"
-                           "2) Выводить статистику по пользователю, репозиторию, issue и pull request\n"
-                           "3) Сохранять в избранное понравившиеся тебе ссылки c интересными репозиториями, пользователями и другим.\n";
-        bot.getApi().sendMessage(message->chat->id, text, false, 0, mainKeyboard);
-    });
+    onCommandStart(bot, mainKeyboard);
+    onCallbackQueryStatisticsMenu(bot, statisticsKeyboard);
+    onCallbackQuerySearchMenu(bot, searchKeyboard);
+    onCallbackQueryFavoritesMenu(bot, favouritesKeyboard);
+    onCallbackQueryExitToMainMenu(bot, mainKeyboard);
 
-    bot.getEvents().onCallbackQuery([&bot, &statisticsKeyboard](TgBot::CallbackQuery::Ptr query) {
-        if (StringTools::startsWith(query->data, "statisticsMenu")) {
-            std::string response = "Выберете нужную опцию для вывода статистики";
-            bot.getApi().sendMessage(query->message->chat->id, response, false, 0, statisticsKeyboard, "Markdown");
-        }
-    });
+    setUpInputParameters(bot);
 
-    bot.getEvents().onCallbackQuery([&bot, &searchKeyboard](TgBot::CallbackQuery::Ptr query) {
-        if (StringTools::startsWith(query->data, "searchMenu")) {
-            std::string response = "Выберете нужную опцию для поиска";
-            bot.getApi().sendMessage(query->message->chat->id, response, false, 0, searchKeyboard, "Markdown");
-        }
-    });
-
-    bot.getEvents().onCallbackQuery([&bot, &favouritesKeyboard](TgBot::CallbackQuery::Ptr query) {
-        if (StringTools::startsWith(query->data, "favoritesMenu")) {
-            std::string response = "Выберете нужную опцию";
-            bot.getApi().sendMessage(query->message->chat->id, response, false, 0, favouritesKeyboard, "Markdown");
-        }
-    });
-
-
-
-    bot.getEvents().onCallbackQuery([&bot, &mainKeyboard](TgBot::CallbackQuery::Ptr query) {
-        if (StringTools::startsWith(query->data, "exitStatistics") ||
-            StringTools::startsWith(query->data, "exitSearch") ||
-            StringTools::startsWith(query->data, "exitFavourites")
-                ) {
-            std::string response = "Возврат к главному меню";
-            bot.getApi().sendMessage(query->message->chat->id, response, false, 0, mainKeyboard, "Markdown");
-        }
-    });
-
+    onCallbackQueryRepositoryStatistics(bot, mainKeyboard);
+    onCallbackQueryUserStatistics(bot, mainKeyboard);
 
 
     signal(SIGINT, [](int s) {
@@ -210,3 +178,221 @@ TgBot::InlineKeyboardMarkup::Ptr GithubHelperBot::setUpFavouritesMenu() {
 
     return favouritesKeyboard;
 }
+
+void GithubHelperBot::onCommandStart(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard) {
+    bot.getEvents().onCommand("start", [&bot, &keyboard](TgBot::Message::Ptr message) {
+        std::string text = "Привет, это GithubAwesomeBot.\n"
+                           "Бот может:\n"
+                           "1) Искать репозитории и пользователей\n"
+                           "2) Выводить статистику по пользователю, репозиторию, issue и pull request\n"
+                           "3) Сохранять в избранное понравившиеся тебе ссылки c интересными репозиториями, пользователями и другим.\n\n"
+                           "Перед началом использования бота необходимо ввести некоторые параметры:\n"
+                           "1) Для ввода имени владельца репозитория используйте шаблон: \"Владелец: <никнейм владельца репозитория>\".\n"
+                           "2) Для ввода названия репозитория используйте шаблон: \"Репозиторий: <название репозитория>\".\n"
+                           "3) Для ввода номера pull request'а используйте шаблон: \"Номер pull request: <номер pull request'a>\".\n"
+                           "4) Для ввода номера issue используйте шаблон: \"Номер issue: <номер issue>\".\n";
+        bot.getApi().sendMessage(message->chat->id, text, false, 0, keyboard);
+    });
+}
+
+void GithubHelperBot::onCallbackQueryStatisticsMenu(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard) {
+    bot.getEvents().onCallbackQuery([&bot, &keyboard](TgBot::CallbackQuery::Ptr query) {
+        if (StringTools::startsWith(query->data, "statisticsMenu")) {
+            std::string response = "Выберете нужную опцию для вывода статистики";
+            bot.getApi().sendMessage(query->message->chat->id, response, false, 0, keyboard, "Markdown");
+        }
+    });
+}
+
+void GithubHelperBot::onCallbackQuerySearchMenu(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard) {
+    bot.getEvents().onCallbackQuery([&bot, &keyboard](TgBot::CallbackQuery::Ptr query) {
+        if (StringTools::startsWith(query->data, "searchMenu")) {
+            std::string response = "Выберете нужную опцию для поиска";
+            bot.getApi().sendMessage(query->message->chat->id, response, false, 0, keyboard, "Markdown");
+        }
+    });
+}
+
+void GithubHelperBot::onCallbackQueryFavoritesMenu(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard) {
+    bot.getEvents().onCallbackQuery([&bot, &keyboard](TgBot::CallbackQuery::Ptr query) {
+        if (StringTools::startsWith(query->data, "favoritesMenu")) {
+            std::string response = "Выберете нужную опцию";
+            bot.getApi().sendMessage(query->message->chat->id, response, false, 0, keyboard, "Markdown");
+        }
+    });
+}
+
+void GithubHelperBot::onCallbackQueryExitToMainMenu(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard) {
+    bot.getEvents().onCallbackQuery([&bot, &keyboard](TgBot::CallbackQuery::Ptr query) {
+        if (StringTools::startsWith(query->data, "exitStatistics") ||
+            StringTools::startsWith(query->data, "exitSearch") ||
+            StringTools::startsWith(query->data, "exitFavourites")
+                ) {
+            std::string response = "Возврат к главному меню";
+            bot.getApi().sendMessage(query->message->chat->id, response, false, 0, keyboard, "Markdown");
+        }
+    });
+}
+
+void GithubHelperBot::setUpInputParameters(TgBot::Bot &bot) {
+    bot.getEvents().onAnyMessage([&bot, this](TgBot::Message::Ptr message){
+        std::string tag = "Владелец: ";
+        if (StringTools::startsWith(message->text, tag)) {
+            std::cout << "User wrote: " << message->text << std::endl;
+            user = message->text.erase(0, tag.size());
+            std::cout << "user: " << user << std::endl;
+            bot.getApi().sendMessage(message->chat->id, "Введен владелец: " + user);
+        }
+    });
+
+    bot.getEvents().onAnyMessage([&bot, this](TgBot::Message::Ptr message){
+        std::string tag = "Репозиторий: ";
+        if (StringTools::startsWith(message->text, tag)) {
+            std::cout << "User wrote: " << message->text << std::endl;
+            repositoryName = message->text.erase(0, tag.size());
+            std::cout << "repositoryName: " << repositoryName << std::endl;
+            bot.getApi().sendMessage(message->chat->id, "Введен репозиторий: " + repositoryName);
+        }
+    });
+
+    bot.getEvents().onAnyMessage([&bot, this](TgBot::Message::Ptr message){
+        std::string tag = "Номер pull request: ";
+        if (StringTools::startsWith(message->text, tag)) {
+            std::cout << "User wrote: " << message->text << std::endl;
+            std::string temp = message->text.erase(0, tag.size());
+            pullRequestNumber = std::stoi(temp);
+            std::cout << "pullRequestNumber: " << pullRequestNumber << std::endl;
+            bot.getApi().sendMessage(message->chat->id, "Введен номер pull request'а: " + temp);
+        }
+    });
+
+    bot.getEvents().onAnyMessage([&bot, this](TgBot::Message::Ptr message){
+        std::string tag = "Номер issue: ";
+        if (StringTools::startsWith(message->text, tag)) {
+            std::cout << "User wrote: " << message->text << std::endl;
+            std::string temp = message->text.erase(0, tag.size());
+            issueNumber = std::stoi(temp);
+            std::cout << "issueNumber: " << issueNumber << std::endl;
+            bot.getApi().sendMessage(message->chat->id, "Введен номер issue: " + temp);
+        }
+    });
+}
+
+void GithubHelperBot::onCallbackQueryRepositoryStatistics(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard) {
+    bot.getEvents().onCallbackQuery([&bot, &keyboard, this](TgBot::CallbackQuery::Ptr query) {
+        if (StringTools::startsWith(query->data, "repositoryStatistics")) {
+            if (user.empty() || repositoryName.empty()) {
+                std::string requestToEnterUserAndRepositoryOwner = "Введите владельца и название репозитория:";
+                bot.getApi().sendMessage(query->message->chat->id, requestToEnterUserAndRepositoryOwner);
+            }
+            else {
+                CURL *curl;
+                CURLcode res;
+                std::string readBuffer;
+
+                curl = curl_easy_init();
+                if (curl) {
+                    std::string url = "https://api.github.com/repos/" + user + "/" + repositoryName;
+                    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+                    curl_easy_setopt(curl, CURLOPT_USERAGENT, "Accept: application/vnd.github+json");
+                    curl_easy_setopt(curl, CURLOPT_USERAGENT,
+                                     "Authorization: Bearer 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");
+                    curl_easy_setopt(curl, CURLOPT_USERAGENT, "X-GitHub-Api-Version: 2022-11-28");
+
+                    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+                    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+                    res = curl_easy_perform(curl);
+                    curl_easy_cleanup(curl);
+
+                    if (res == 0) {
+                        std::stringstream jsonEncoded(readBuffer);
+                        boost::property_tree::ptree root;
+                        boost::property_tree::read_json(jsonEncoded, root);
+
+                        if (root.empty())
+                            return;
+
+                        std::string response = "Статистика репозитория с владельцем: " + user + " и названием репозитория: " +
+                                               repositoryName + "\n" +
+                                               "Repository url: " + root.get<std::string>("html_url") + "\n" +
+                                               "Repository name: " + root.get<std::string>("name") + "\n" +
+                                               "Visibility: " + root.get<std::string>("visibility") + "\n" +
+                                               "Forks count: " + root.get<std::string>("forks") + "\n" +
+                                               "Open issues count: " + root.get<std::string>("open_issues") + "\n" +
+                                               "Stars count: " + root.get<std::string>("stargazers_count") + "\n" +
+                                               "Watchers count: " + root.get<std::string>("watchers_count") + "\n" +
+                                               "Forks count: " + root.get<std::string>("forks_count") + "\n" +
+                                               "Main language: " + root.get<std::string>("language") + "\n";
+
+                        std::cout << response << std::endl;
+                        bot.getApi().sendMessage(query->message->chat->id, response, false, 0, keyboard);
+                    }
+                    else {
+                        bot.getApi().sendMessage(query->message->chat->id, "Не удалось найти репозиторий с параметрами: "
+                            "владелец = " + user + ", название репозитория = " + repositoryName,
+                            false, 0, keyboard);
+                    }
+                }
+            }
+        }
+    });
+}
+
+void GithubHelperBot::onCallbackQueryUserStatistics(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard) {
+    bot.getEvents().onCallbackQuery([&bot, &keyboard, this](TgBot::CallbackQuery::Ptr query) {
+        if (StringTools::startsWith(query->data, "userStatistics")) {
+            if (user.empty()) {
+                std::string requestToEnterUser = "Введите имя пользователя";
+                bot.getApi().sendMessage(query->message->chat->id, requestToEnterUser);
+            }
+            else {
+                CURL *curl;
+                CURLcode res;
+                std::string readBuffer;
+
+                curl = curl_easy_init();
+                if (curl) {
+                    std::string url = "https://api.github.com/users/" + user;
+                    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+                    curl_easy_setopt(curl, CURLOPT_USERAGENT, "Accept: application/vnd.github+json");
+                    curl_easy_setopt(curl, CURLOPT_USERAGENT,
+                                     "Authorization: Bearer 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");
+                    curl_easy_setopt(curl, CURLOPT_USERAGENT, "X-GitHub-Api-Version: 2022-11-28");
+
+                    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+                    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+                    res = curl_easy_perform(curl);
+                    curl_easy_cleanup(curl);
+
+                    if (res == 0) {
+                        std::stringstream jsonEncoded(readBuffer);
+                        boost::property_tree::ptree root;
+                        boost::property_tree::read_json(jsonEncoded, root);
+
+                        if (root.empty())
+                            return;
+
+                        std::string response = "Статистика пользователя: " + user + "\n" +
+                                               "User url: " + root.get<std::string>("html_url") + "\n" +
+                                               "Repository name: " + root.get<std::string>("name") + "\n" +
+                                               "Name: " + root.get<std::string>("name") + "\n" +
+                                               "Company: " + root.get<std::string>("company") + "\n" +
+                                               "Location: " + root.get<std::string>("location") + "\n" +
+                                               "Email: " + root.get<std::string>("email") + "\n" +
+                                               "Public repos count: " + root.get<std::string>("public_repos") + "\n" +
+                                               "Followers count: " + root.get<std::string>("followers") + "\n" +
+                                               "Following count: " + root.get<std::string>("following") + "\n";
+
+                        std::cout << response << std::endl;
+                        bot.getApi().sendMessage(query->message->chat->id, response, false, 0, keyboard);
+                    }
+                    else {
+                        bot.getApi().sendMessage(query->message->chat->id, "Не удалось найти пользователя: " + user, false, 0, keyboard);
+                    }
+                }
+            }
+        }
+    });
+}
+
+

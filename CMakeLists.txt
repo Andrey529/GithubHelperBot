@@ -21,7 +21,7 @@ include_directories(/usr/local/lib/libpqxx/include)
 #add_subdirectory(external/lib/cpp-dotenv)
 #include_directories(external/lib/cpp-dotenv/include)
 
-add_executable(${CMAKE_PROJECT_NAME} main.cpp src/GithubHelperBot.cpp src/GithubHelperBot.h)
+add_executable(${CMAKE_PROJECT_NAME} main.cpp src/GithubHelperBot.cpp src/GithubHelperBot.h src/CurlClient.h)
 
 target_link_libraries(${CMAKE_PROJECT_NAME} pqxx #[[cpp-dotenv ]] pq /usr/local/lib/libpqxx/lib/libpqxx.a
         /usr/local/lib/libTgBot.a ${CMAKE_THREAD_LIBS_INIT}
