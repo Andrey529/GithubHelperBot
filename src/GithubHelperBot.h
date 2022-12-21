@@ -13,8 +13,8 @@ private:
     std::string token;
     std::string user;
     std::string repositoryName;
-    int pullRequestNumber;
-    int issueNumber;
+    int pullRequestNumber = -1;
+    int issueNumber = -1;
 public:
     explicit GithubHelperBot(const std::string &token);
 private:
@@ -35,6 +35,8 @@ private:
 
     void onCallbackQueryRepositoryStatistics(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard);
     void onCallbackQueryUserStatistics(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard);
+    void onCallbackQueryPullRequestStatistics(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard);
+    void onCallbackQueryIssueStatistics(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard);
 
 
 
