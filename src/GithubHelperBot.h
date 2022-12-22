@@ -7,18 +7,19 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <pqxx/pqxx>
+#include <unordered_map>
 
 class GithubHelperBot {
 private:
     std::string token;
-    std::string user;
-    std::string repositoryName;
-    int pullRequestNumber = -1;
-    int issueNumber = -1;
-    std::string link;
-    std::string description = "NULL";
+    std::unordered_map<int64_t, std::string> user;
+    std::unordered_map<int64_t, std::string> repositoryName;
+    std::unordered_map<int64_t, int> pullRequestNumber;
+    std::unordered_map<int64_t, int> issueNumber;
+    std::unordered_map<int64_t, std::string> link;
+    std::unordered_map<int64_t, std::string> description;
     std::string tableName = "ghb.\"favouriteRecords\"";
-    int recordNumber = -1;
+    std::unordered_map<int64_t, int> recordNumber;
 public:
     explicit GithubHelperBot(const std::string &token);
 private:
@@ -46,7 +47,7 @@ private:
 
 
     void onCallbackQueryAddNewRecordToFavourites(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard);
-    void onCallbackQueryshowFavouriteRecords(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard);
+    void onCallbackQueryShowFavouriteRecords(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard);
 
 
 };
