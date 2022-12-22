@@ -16,10 +16,15 @@ private:
     std::unordered_map<int64_t, std::string> repositoryName;
     std::unordered_map<int64_t, int> pullRequestNumber;
     std::unordered_map<int64_t, int> issueNumber;
-    std::unordered_map<int64_t, std::string> link;
-    std::unordered_map<int64_t, std::string> description;
+    std::unordered_map<int64_t, std::string> link; // links for favourite records
+    std::unordered_map<int64_t, std::string> description; // description for favourite links
+    std::unordered_map<int64_t, std::string> content; // words that are used to search repository
+    std::unordered_map<int64_t, std::string> languageInRepo;
+    std::unordered_map<int64_t, std::string> repoVisibibillity; // public or private
+    std::unordered_map<int64_t, int> minimumTopicsCountInRepo;
+    std::unordered_map<int64_t, int> mininmumStarsCount;
+    std::unordered_map<int64_t, int> minimumForksCount;
     std::string tableName = "ghb.\"favouriteRecords\"";
-    std::unordered_map<int64_t, int> recordNumber;
 public:
     explicit GithubHelperBot(const std::string &token);
 private:
@@ -43,7 +48,8 @@ private:
     void onCallbackQueryPullRequestStatistics(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard);
     void onCallbackQueryIssueStatistics(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard);
 
-//    void onCallbackQuerySearchRepositoryies(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard);
+    void onCallbackQuerySearchRepositoryies(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard);
+    void onCallbackQuerySearchDropAllParameters(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard);
 
 
     void onCallbackQueryAddNewRecordToFavourites(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard);
@@ -51,7 +57,26 @@ private:
     void onCallbackQueryDeleteRecordFromFavourites(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard);
     void onCallbackQueryEditFavouriteRecord(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard);
 
+    std::string urlEncode(const std::string &value) {
+        std::ostringstream escaped;
+        escaped.fill('0');
+        escaped << std::hex;
 
+        for (char c : value) {
+            // Keep alphanumeric and other accepted characters intact
+            if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
+                escaped << c;
+                continue;
+            }
+
+            // Any other characters are percent-encoded
+            escaped << std::uppercase;
+            escaped << '%' << std::setw(2) << static_cast<int>(static_cast<unsigned char>(c));
+            escaped << std::nouppercase;
+        }
+
+        return escaped.str();
+    }
 };
 
 
