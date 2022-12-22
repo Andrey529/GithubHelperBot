@@ -48,6 +48,8 @@ private:
 
     void onCallbackQueryAddNewRecordToFavourites(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard);
     void onCallbackQueryShowFavouriteRecords(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard);
+    void onCallbackQueryDeleteRecordFromFavourites(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard);
+    void onCallbackQueryEditFavouriteRecord(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard);
 
 
 };

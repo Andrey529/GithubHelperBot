@@ -23,6 +23,8 @@ GithubHelperBot::GithubHelperBot(const std::string &token) : token(token) {
 
     onCallbackQueryAddNewRecordToFavourites(bot, mainKeyboard);
     onCallbackQueryShowFavouriteRecords(bot, mainKeyboard);
+    onCallbackQueryDeleteRecordFromFavourites(bot, mainKeyboard);
+    onCallbackQueryEditFavouriteRecord(bot, mainKeyboard);
 
     signal(SIGINT, [](int s) {
         std::cout << "SIGINT got" << std::endl;
@@ -241,78 +243,106 @@ void GithubHelperBot::onCallbackQueryExitToMainMenu(TgBot::Bot &bot, TgBot::Inli
 }
 
 void GithubHelperBot::setUpInputParameters(TgBot::Bot &bot) {
-    bot.getEvents().onAnyMessage([&bot, this](TgBot::Message::Ptr message){
+    bot.getEvents().onAnyMessage([&bot, this](TgBot::Message::Ptr message) {
         std::string tag = "Владелец: ";
         if (StringTools::startsWith(message->text, tag)) {
             int64_t id = message->chat->id;
             std::cout << "User wrote: " << message->text << std::endl;
-            user.insert(std::pair<int64_t, std::string>(id, message->text.erase(0, tag.size())));
+            if (user.contains(id)) {
+                user[id] = message->text.erase(0, tag.size());
+            } else {
+                user.insert(std::pair<int64_t, std::string>(id, message->text.erase(0, tag.size())));
+            }
             std::cout << "user: " << user[id] << std::endl;
             bot.getApi().sendMessage(id, "Введен владелец: " + user[id]);
         }
     });
 
-    bot.getEvents().onAnyMessage([&bot, this](TgBot::Message::Ptr message){
+    bot.getEvents().onAnyMessage([&bot, this](TgBot::Message::Ptr message) {
         std::string tag = "Репозиторий: ";
         if (StringTools::startsWith(message->text, tag)) {
             int64_t id = message->chat->id;
             std::cout << "User wrote: " << message->text << std::endl;
-            repositoryName.insert(std::pair<int64_t, std::string>(id, message->text.erase(0, tag.size())));
+            if (repositoryName.contains(id)) {
+                repositoryName[id] = message->text.erase(0, tag.size());
+            } else {
+                repositoryName.insert(std::pair<int64_t, std::string>(id, message->text.erase(0, tag.size())));
+            }
             std::cout << "repositoryName: " << repositoryName[id] << std::endl;
             bot.getApi().sendMessage(id, "Введен репозиторий: " + repositoryName[id]);
         }
     });
 
-    bot.getEvents().onAnyMessage([&bot, this](TgBot::Message::Ptr message){
+    bot.getEvents().onAnyMessage([&bot, this](TgBot::Message::Ptr message) {
         std::string tag = "Номер pull request: ";
         if (StringTools::startsWith(message->text, tag)) {
             int64_t id = message->chat->id;
             std::cout << "User wrote: " << message->text << std::endl;
-            pullRequestNumber.insert(std::pair<int64_t, int>(id, std::stoi(message->text.erase(0, tag.size()))));
+            if (pullRequestNumber.contains(id)) {
+                pullRequestNumber[id] = std::stoi(message->text.erase(0, tag.size()));
+            } else {
+                pullRequestNumber.insert(std::pair<int64_t, int>(id, std::stoi(message->text.erase(0, tag.size()))));
+            }
             std::cout << "pullRequestNumber: " << pullRequestNumber[id] << std::endl;
             bot.getApi().sendMessage(id, "Введен номер pull request'а: " + std::to_string(pullRequestNumber[id]));
         }
     });
 
-    bot.getEvents().onAnyMessage([&bot, this](TgBot::Message::Ptr message){
+    bot.getEvents().onAnyMessage([&bot, this](TgBot::Message::Ptr message) {
         std::string tag = "Номер issue: ";
         if (StringTools::startsWith(message->text, tag)) {
             int64_t id = message->chat->id;
             std::cout << "User wrote: " << message->text << std::endl;
-            issueNumber.insert(std::pair<int64_t, int>(id, std::stoi(message->text.erase(0, tag.size()))));
+            if (issueNumber.contains(id)) {
+                issueNumber[id] = std::stoi(message->text.erase(0, tag.size()));
+            } else {
+                issueNumber.insert(std::pair<int64_t, int>(id, std::stoi(message->text.erase(0, tag.size()))));
+            }
             std::cout << "issueNumber: " << issueNumber[id] << std::endl;
             bot.getApi().sendMessage(id, "Введен номер issue: " + std::to_string(issueNumber[id]));
         }
     });
 
-    bot.getEvents().onAnyMessage([&bot, this](TgBot::Message::Ptr message){
+    bot.getEvents().onAnyMessage([&bot, this](TgBot::Message::Ptr message) {
         std::string tag = "Ссылка: ";
         if (StringTools::startsWith(message->text, tag)) {
             int64_t id = message->chat->id;
             std::cout << "User wrote: " << message->text << std::endl;
-            link.insert(std::pair<int64_t, std::string>(id, message->text.erase(0, tag.size())));
+            if (link.contains(id)) {
+                link[id] = message->text.erase(0, tag.size());
+            } else {
+                link.insert(std::pair<int64_t, std::string>(id, message->text.erase(0, tag.size())));
+            }
             std::cout << "link: " << link[id] << std::endl;
             bot.getApi().sendMessage(id, "Введена ссылка: " + link[id]);
         }
     });
 
-    bot.getEvents().onAnyMessage([&bot, this](TgBot::Message::Ptr message){
+    bot.getEvents().onAnyMessage([&bot, this](TgBot::Message::Ptr message) {
         std::string tag = "Описание: ";
         if (StringTools::startsWith(message->text, tag)) {
             int64_t id = message->chat->id;
             std::cout << "User wrote: " << message->text << std::endl;
-            description.insert(std::pair<int64_t, std::string>(id, message->text.erase(0, tag.size())));
+            if (description.contains(id)) {
+                description[id] = message->text.erase(0, tag.size());
+            } else {
+                description.insert(std::pair<int64_t, std::string>(id, message->text.erase(0, tag.size())));
+            }
             std::cout << "description: " << description[id] << std::endl;
             bot.getApi().sendMessage(id, "Введено описание: " + description[id]);
         }
     });
 
-    bot.getEvents().onAnyMessage([&bot, this](TgBot::Message::Ptr message){
+    bot.getEvents().onAnyMessage([&bot, this](TgBot::Message::Ptr message) {
         std::string tag = "Номер записи: ";
         if (StringTools::startsWith(message->text, tag)) {
             int64_t id = message->chat->id;
             std::cout << "User wrote: " << message->text << std::endl;
-            recordNumber.insert(std::pair<int64_t, int>(id, std::stoi(message->text.erase(0, tag.size()))));
+            if (recordNumber.contains(id)) {
+                recordNumber[id] = std::stoi(message->text.erase(0, tag.size()));
+            } else {
+                recordNumber.insert(std::pair<int64_t, int>(id, std::stoi(message->text.erase(0, tag.size()))));
+            }
             std::cout << "recordNumber: " << recordNumber[id] << std::endl;
             bot.getApi().sendMessage(id, "Введен номер записи: " + std::to_string(recordNumber[id]));
         }
@@ -326,8 +356,7 @@ void GithubHelperBot::onCallbackQueryRepositoryStatistics(TgBot::Bot &bot, TgBot
             if (user[id].empty() || !user.contains(id) || repositoryName[id].empty() || !repositoryName.contains(id)) {
                 std::string requestToEnterUserAndRepositoryOwner = "Введите владельца и название репозитория:";
                 bot.getApi().sendMessage(id, requestToEnterUserAndRepositoryOwner);
-            }
-            else {
+            } else {
                 CURL *curl;
                 CURLcode res;
                 std::string readBuffer;
@@ -354,25 +383,26 @@ void GithubHelperBot::onCallbackQueryRepositoryStatistics(TgBot::Bot &bot, TgBot
                         if (root.empty())
                             return;
 
-                        std::string response = "Статистика репозитория с владельцем: " + user[id] + " и названием репозитория: " +
-                                               repositoryName[id] + "\n" +
-                                               "Repository url: " + root.get<std::string>("html_url") + "\n" +
-                                               "Repository name: " + root.get<std::string>("name") + "\n" +
-                                               "Visibility: " + root.get<std::string>("visibility") + "\n" +
-                                               "Forks count: " + root.get<std::string>("forks") + "\n" +
-                                               "Open issues count: " + root.get<std::string>("open_issues") + "\n" +
-                                               "Stars count: " + root.get<std::string>("stargazers_count") + "\n" +
-                                               "Watchers count: " + root.get<std::string>("watchers_count") + "\n" +
-                                               "Forks count: " + root.get<std::string>("forks_count") + "\n" +
-                                               "Main language: " + root.get<std::string>("language") + "\n";
+                        std::string response =
+                                "Статистика репозитория с владельцем: " + user[id] + " и названием репозитория: " +
+                                repositoryName[id] + "\n" +
+                                "Repository url: " + root.get<std::string>("html_url") + "\n" +
+                                "Repository name: " + root.get<std::string>("name") + "\n" +
+                                "Visibility: " + root.get<std::string>("visibility") + "\n" +
+                                "Forks count: " + root.get<std::string>("forks") + "\n" +
+                                "Open issues count: " + root.get<std::string>("open_issues") + "\n" +
+                                "Stars count: " + root.get<std::string>("stargazers_count") + "\n" +
+                                "Watchers count: " + root.get<std::string>("watchers_count") + "\n" +
+                                "Forks count: " + root.get<std::string>("forks_count") + "\n" +
+                                "Main language: " + root.get<std::string>("language") + "\n";
 
                         std::cout << response << std::endl;
                         bot.getApi().sendMessage(id, response, false, 0, keyboard);
-                    }
-                    else {
+                    } else {
                         bot.getApi().sendMessage(id, "Не удалось найти репозиторий с параметрами: "
-                            "владелец = " + user[id] + ", название репозитория = " + repositoryName[id],
-                            false, 0, keyboard);
+                                                     "владелец = " + user[id] + ", название репозитория = " +
+                                                     repositoryName[id],
+                                                 false, 0, keyboard);
                     }
                 }
             }
@@ -387,8 +417,7 @@ void GithubHelperBot::onCallbackQueryUserStatistics(TgBot::Bot &bot, TgBot::Inli
             if (user[id].empty() || !user.contains(id)) {
                 std::string requestToEnterUser = "Введите имя пользователя";
                 bot.getApi().sendMessage(id, requestToEnterUser);
-            }
-            else {
+            } else {
                 CURL *curl;
                 CURLcode res;
                 std::string readBuffer;
@@ -428,8 +457,7 @@ void GithubHelperBot::onCallbackQueryUserStatistics(TgBot::Bot &bot, TgBot::Inli
 
                         std::cout << response << std::endl;
                         bot.getApi().sendMessage(id, response, false, 0, keyboard);
-                    }
-                    else {
+                    } else {
                         bot.getApi().sendMessage(id, "Не удалось найти пользователя: " + user[id], false, 0, keyboard);
                     }
                 }
@@ -449,15 +477,16 @@ void GithubHelperBot::onCallbackQueryPullRequestStatistics(TgBot::Bot &bot,
                         "Введите владельца, название репозитория и номер pull request'а:";
                 bot.getApi().sendMessage(id,
                                          requestToEnterUserAndRepositoryOwnerAndPullRequestNumner);
-            }
-            else {
+            } else {
                 CURL *curl;
                 CURLcode res;
                 std::string readBuffer;
 
                 curl = curl_easy_init();
                 if (curl) {
-                    std::string url = "https://api.github.com/repos/" + user[id] + "/" + repositoryName[id] + "/pulls/" + std::to_string(pullRequestNumber[id]);
+                    std::string url =
+                            "https://api.github.com/repos/" + user[id] + "/" + repositoryName[id] + "/pulls/" +
+                            std::to_string(pullRequestNumber[id]);
                     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
                     curl_easy_setopt(curl, CURLOPT_USERAGENT, "Accept: application/vnd.github+json");
                     curl_easy_setopt(curl, CURLOPT_USERAGENT,
@@ -477,34 +506,34 @@ void GithubHelperBot::onCallbackQueryPullRequestStatistics(TgBot::Bot &bot,
                         if (root.empty())
                             return;
 
-                        std::string response = "Статистика pull request'а с владельцем: " + user[id] + ", названием репозитория: " +
-                                               repositoryName[id] + " и номером:  " + std::to_string(pullRequestNumber[id]) + "\n" +
-                                               "Pull request url: " + root.get<std::string>("html_url") + "\n" +
-                                               "Issue url: " + root.get<std::string>("issue_url") + "\n" +
-                                               "Number: " + root.get<std::string>("number") + "\n" +
-                                               "State: " + root.get<std::string>("state") + "\n" +
-                                               "Title: " + root.get<std::string>("title") + "\n" +
-                                               "Opened by: " + root.get_child("user").get<std::string>("login") + "\n" +
-                                               "Body: " + root.get<std::string>("body") + "\n" +
-                                               "Created at: " + root.get<std::string>("created_at") + "\n" +
-                                               "Updated at: " + root.get<std::string>("updated_at") + "\n" +
-                                               "Closed at: " + root.get<std::string>("closed_at") + "\n" +
-                                               "Merged at: " + root.get<std::string>("merged_at") + "\n" +
-                                               "Assignee: " + root.get_child("assignee").get<std::string>("login") + "\n" +
-                                               "Requested reviewers: " + root.get<std::string>("requested_reviewers") + "\n" +
-                                               "Merged by: " + root.get_child("merged_by").get<std::string>("login") + "\n" +
-                                               "Comments: " + root.get<std::string>("comments") + "\n" +
-                                               "Review comments: " + root.get<std::string>("review_comments") + "\n" +
-                                               "Commits: " + root.get<std::string>("commits") + "\n";
+                        std::string response =
+                                "Статистика pull request'а с владельцем: " + user[id] + ", названием репозитория: " +
+                                repositoryName[id] + " и номером:  " + std::to_string(pullRequestNumber[id]) + "\n" +
+                                "Pull request url: " + root.get<std::string>("html_url") + "\n" +
+                                "Issue url: " + root.get<std::string>("issue_url") + "\n" +
+                                "Number: " + root.get<std::string>("number") + "\n" +
+                                "State: " + root.get<std::string>("state") + "\n" +
+                                "Title: " + root.get<std::string>("title") + "\n" +
+                                "Opened by: " + root.get_child("user").get<std::string>("login") + "\n" +
+                                "Body: " + root.get<std::string>("body") + "\n" +
+                                "Created at: " + root.get<std::string>("created_at") + "\n" +
+                                "Updated at: " + root.get<std::string>("updated_at") + "\n" +
+                                "Closed at: " + root.get<std::string>("closed_at") + "\n" +
+                                "Merged at: " + root.get<std::string>("merged_at") + "\n" +
+                                "Assignee: " + root.get_child("assignee").get<std::string>("login") + "\n" +
+                                "Requested reviewers: " + root.get<std::string>("requested_reviewers") + "\n" +
+                                "Merged by: " + root.get_child("merged_by").get<std::string>("login") + "\n" +
+                                "Comments: " + root.get<std::string>("comments") + "\n" +
+                                "Review comments: " + root.get<std::string>("review_comments") + "\n" +
+                                "Commits: " + root.get<std::string>("commits") + "\n";
 
                         std::cout << response << std::endl;
                         bot.getApi().sendMessage(id, response, false, 0, keyboard);
-                    }
-                    else {
+                    } else {
                         bot.getApi().sendMessage(id, "Не удалось найти pull request с параметрами: "
-                                                                           "пользователь = " + user[id] + ", название репозитория = " +
-                                                                           repositoryName[id] + ", номер pull request'а = " +
-                                                                           std::to_string(pullRequestNumber[id]),
+                                                     "пользователь = " + user[id] + ", название репозитория = " +
+                                                     repositoryName[id] + ", номер pull request'а = " +
+                                                     std::to_string(pullRequestNumber[id]),
                                                  false, 0, keyboard);
                     }
                 }
@@ -522,9 +551,8 @@ void GithubHelperBot::onCallbackQueryIssueStatistics(TgBot::Bot &bot, TgBot::Inl
                 || !repositoryName.contains(id) || !issueNumber.contains(id)) {
                 std::string requestToEnterUserAndRepositoryOwnerAndPullIssueNumner =
                         "Введите владельца, название репозитория и номер issue:";
-                bot.getApi().sendMessage(id,requestToEnterUserAndRepositoryOwnerAndPullIssueNumner);
-            }
-            else {
+                bot.getApi().sendMessage(id, requestToEnterUserAndRepositoryOwnerAndPullIssueNumner);
+            } else {
                 CURL *curl;
                 CURLcode res;
                 std::string readBuffer;
@@ -532,7 +560,7 @@ void GithubHelperBot::onCallbackQueryIssueStatistics(TgBot::Bot &bot, TgBot::Inl
                 curl = curl_easy_init();
                 if (curl) {
                     std::string url = "https://api.github.com/repos/" + user[id] + "/" + repositoryName[id] +
-                            "/issues/" + std::to_string(issueNumber[id]);
+                                      "/issues/" + std::to_string(issueNumber[id]);
                     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
                     curl_easy_setopt(curl, CURLOPT_USERAGENT, "Accept: application/vnd.github+json");
                     curl_easy_setopt(curl, CURLOPT_USERAGENT,
@@ -552,29 +580,29 @@ void GithubHelperBot::onCallbackQueryIssueStatistics(TgBot::Bot &bot, TgBot::Inl
                         if (root.empty())
                             return;
 
-                        std::string response = "Статистика issue с владельцем: " + user[id] + ", названием репозитория: " +
-                                               repositoryName[id] + " и номером:  " + std::to_string(issueNumber[id]) + "\n" +
-                                               "Issue url: " + root.get<std::string>("html_url") + "\n" +
-                                               "Number: " + root.get<std::string>("number") + "\n" +
-                                               "Title: " + root.get<std::string>("title") + "\n" +
-                                               "State: " + root.get<std::string>("state") + "\n" +
-                                               "Opened by: " + root.get_child("user").get<std::string>("login") + "\n" +
-                                               "Body: " + root.get<std::string>("body") + "\n" +
-                                               "Assignee: " + root.get_child("assignee").get<std::string>("login") + "\n" +
-                                               "Comments count: " + root.get<std::string>("comments") + "\n" +
-                                               "Created at: " + root.get<std::string>("created_at") + "\n" +
-                                               "Updated at: " + root.get<std::string>("updated_at") + "\n" +
-                                               "Closed at: " + root.get<std::string>("closed_at") + "\n" +
-                                               "Closed by: " + root.get_child("closed_by").get<std::string>("login") + "\n";
+                        std::string response =
+                                "Статистика issue с владельцем: " + user[id] + ", названием репозитория: " +
+                                repositoryName[id] + " и номером:  " + std::to_string(issueNumber[id]) + "\n" +
+                                "Issue url: " + root.get<std::string>("html_url") + "\n" +
+                                "Number: " + root.get<std::string>("number") + "\n" +
+                                "Title: " + root.get<std::string>("title") + "\n" +
+                                "State: " + root.get<std::string>("state") + "\n" +
+                                "Opened by: " + root.get_child("user").get<std::string>("login") + "\n" +
+                                "Body: " + root.get<std::string>("body") + "\n" +
+                                "Assignee: " + root.get_child("assignee").get<std::string>("login") + "\n" +
+                                "Comments count: " + root.get<std::string>("comments") + "\n" +
+                                "Created at: " + root.get<std::string>("created_at") + "\n" +
+                                "Updated at: " + root.get<std::string>("updated_at") + "\n" +
+                                "Closed at: " + root.get<std::string>("closed_at") + "\n" +
+                                "Closed by: " + root.get_child("closed_by").get<std::string>("login") + "\n";
 
                         std::cout << response << std::endl;
                         bot.getApi().sendMessage(id, response, false, 0, keyboard);
-                    }
-                    else {
+                    } else {
                         bot.getApi().sendMessage(id, "Не удалось найти issue с параметрами: "
-                                                                           "пользователь = " + user[id] + ", название репозитория = " +
-                                                                           repositoryName[id] + ", номер issue = " +
-                                                                           std::to_string(issueNumber[id]),
+                                                     "пользователь = " + user[id] + ", название репозитория = " +
+                                                     repositoryName[id] + ", номер issue = " +
+                                                     std::to_string(issueNumber[id]),
                                                  false, 0, keyboard);
                     }
                 }
@@ -602,20 +630,21 @@ void GithubHelperBot::onCallbackQueryAddNewRecordToFavourites(TgBot::Bot &bot,
                 }
 
                 if (!link.contains(id)) {
-                    bot.getApi().sendMessage(id, "Введите ссылку и описание ссылки для вставки новой записи", false, 0, keyboard);
+                    bot.getApi().sendMessage(id, "Введите ссылку и описание ссылки для вставки новой записи", false, 0,
+                                             keyboard);
                     connection.close();
                     return;
                 }
 
                 if (!description.contains(id)) {
-                    description.insert(std::pair<int64_t,std::string>(id, "NULL"));
-                }
-                else if ((description.contains(id) && description[id].empty())) {
+                    description.insert(std::pair<int64_t, std::string>(id, "NULL"));
+                } else if ((description.contains(id) && description[id].empty())) {
                     description[id] = "NULL";
                 }
 
                 std::string sql = "INSERT INTO " + tableName + " (\"telegramUserID\", link, \"description\")" \
-                                  "VALUES (" + std::to_string(id) + ", \'" + link[id] + "\', \'" + description[id] + "\');" ;
+                                  "VALUES (" + std::to_string(id) + ", \'" + link[id] + "\', \'" + description[id] +
+                                  "\');";
 
                 pqxx::work transaction(connection);
                 transaction.exec(sql);
@@ -624,7 +653,7 @@ void GithubHelperBot::onCallbackQueryAddNewRecordToFavourites(TgBot::Bot &bot,
 
                 std::cout << "Records added successfully" << std::endl;
                 bot.getApi().sendMessage(id, "Успешно добавлена запись с ссылкой: "
-                    + link[id] + " и описанием: " + description[id], false, 0, keyboard);
+                                             + link[id] + " и описанием: " + description[id], false, 0, keyboard);
 
             }
             catch (const std::exception &exception) {
@@ -653,7 +682,8 @@ void GithubHelperBot::onCallbackQueryShowFavouriteRecords(TgBot::Bot &bot, TgBot
 
                 std::string sql = "SELECT link, \"description\" "
                                   "FROM " + tableName + ""
-                                  "WHERE \"telegramUserID\" = " + std::to_string(query->message->chat->id) + ";";
+                                                        "WHERE \"telegramUserID\" = " +
+                                  std::to_string(query->message->chat->id) + ";";
 
                 pqxx::work transaction(connection);
                 pqxx::result result = transaction.exec(sql);
@@ -670,7 +700,7 @@ void GithubHelperBot::onCallbackQueryShowFavouriteRecords(TgBot::Bot &bot, TgBot
                 std::string resultString;
                 for (pqxx::result::const_iterator c = result.begin(); c != result.end(); ++c) {
                     resultString += std::to_string(count) + ") ссылка: " + c[0].as<std::string>()
-                            + ", описание: " + c[1].as<std::string>() + "\n";
+                                    + ", описание: " + c[1].as<std::string>() + "\n";
                     count++;
                 }
 
@@ -680,7 +710,100 @@ void GithubHelperBot::onCallbackQueryShowFavouriteRecords(TgBot::Bot &bot, TgBot
             }
             catch (const std::exception &exception) {
                 std::cerr << exception.what() << "\nПроизошла ошибка при выводе списка всех записей" << std::endl;
-                bot.getApi().sendMessage(query->message->chat->id, "Произошла ошибка при выводе списка всех записей", false, 0, keyboard);
+                bot.getApi().sendMessage(query->message->chat->id, "Произошла ошибка при выводе списка всех записей",
+                                         false, 0, keyboard);
+            }
+        }
+    });
+}
+
+void GithubHelperBot::onCallbackQueryDeleteRecordFromFavourites(TgBot::Bot &bot,
+                                                                TgBot::InlineKeyboardMarkup::Ptr &keyboard) {
+    bot.getEvents().onCallbackQuery([&bot, &keyboard, this](TgBot::CallbackQuery::Ptr query) {
+        if (StringTools::startsWith(query->data, "deleteRecord")) {
+            int64_t id = query->message->chat->id;
+            try {
+                pqxx::connection connection("dbname = GithubHelperBot \
+                            user = andrey \
+                            password = 12345 \
+                            hostaddr = 127.0.0.1 \
+                            port = 5433");
+                if (connection.is_open()) {
+                    std::cout << "Opened database successfully: " << connection.dbname() << std::endl;
+                } else {
+                    std::cout << "Can't open database" << std::endl;
+                    throw std::exception();
+                }
+
+                if (!link.contains(id)) {
+                    bot.getApi().sendMessage(id, "Введите ссылку для удаления записи", false, 0, keyboard);
+                    connection.close();
+                    return;
+                }
+
+                std::string sql = "DELETE FROM " + tableName + " " \
+                                  "WHERE link = \'" + link[id] + "\' AND \"telegramUserID\" = " + std::to_string(id) +
+                                  ";";
+
+                pqxx::work transaction(connection);
+                transaction.exec(sql);
+                transaction.commit();
+                connection.close();
+
+                std::cout << "Records deleted successfully" << std::endl;
+                bot.getApi().sendMessage(id, "Успешно удалена запись с ссылкой: " + link[id] +
+                                             " и описанием: " + description[id], false, 0, keyboard);
+
+            }
+            catch (const std::exception &exception) {
+                std::cerr << exception.what() << "\nПроизошла ошибка при удалении записи" << std::endl;
+                bot.getApi().sendMessage(id, "Произошла ошибка при удалении записи", false, 0, keyboard);
+            }
+        }
+    });
+}
+
+void GithubHelperBot::onCallbackQueryEditFavouriteRecord(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard) {
+    bot.getEvents().onCallbackQuery([&bot, &keyboard, this](TgBot::CallbackQuery::Ptr query) {
+        if (StringTools::startsWith(query->data, "editRecord")) {
+            int64_t id = query->message->chat->id;
+            try {
+                pqxx::connection connection("dbname = GithubHelperBot \
+                            user = andrey \
+                            password = 12345 \
+                            hostaddr = 127.0.0.1 \
+                            port = 5433");
+                if (connection.is_open()) {
+                    std::cout << "Opened database successfully: " << connection.dbname() << std::endl;
+                } else {
+                    std::cout << "Can't open database" << std::endl;
+                    throw std::exception();
+                }
+
+                if (!link.contains(id)) {
+                    bot.getApi().sendMessage(id, "Введите ссылку для изменения записи", false, 0, keyboard);
+                    connection.close();
+                    return;
+                }
+
+                std::string sql = "Update " + tableName + "" \
+                                  "SET \"description\" = \'" + description[id] + "\'" \
+                                  "WHERE link = \'" + link[id] + "\' AND \"telegramUserID\" = " + std::to_string(id) +
+                                  ";";
+
+                pqxx::work transaction(connection);
+                transaction.exec(sql);
+                transaction.commit();
+                connection.close();
+
+                std::cout << "Records updated successfully" << std::endl;
+                bot.getApi().sendMessage(id, "Успешно обновлена запись с ссылкой: " + link[id] +
+                                             " и описанием: " + description[id], false, 0, keyboard);
+
+            }
+            catch (const std::exception &exception) {
+                std::cerr << exception.what() << "\nПроизошла ошибка при удалении записи" << std::endl;
+                bot.getApi().sendMessage(id, "Произошла ошибка при удалении записи", false, 0, keyboard);
             }
         }
     });
