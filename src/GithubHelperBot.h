@@ -6,7 +6,7 @@
 #include <curl/curl.h>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
-
+#include <pqxx/pqxx>
 
 class GithubHelperBot {
 private:
@@ -15,6 +15,10 @@ private:
     std::string repositoryName;
     int pullRequestNumber = -1;
     int issueNumber = -1;
+    std::string link;
+    std::string description = "NULL";
+    std::string tableName = "ghb.\"favouriteRecords\"";
+    int recordNumber = -1;
 public:
     explicit GithubHelperBot(const std::string &token);
 private:
@@ -38,7 +42,11 @@ private:
     void onCallbackQueryPullRequestStatistics(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard);
     void onCallbackQueryIssueStatistics(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard);
 
+//    void onCallbackQuerySearchRepositoryies(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard);
 
+
+    void onCallbackQueryAddNewRecordToFavourites(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard);
+    void onCallbackQueryshowFavouriteRecords(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard);
 
 
 };

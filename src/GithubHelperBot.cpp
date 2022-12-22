@@ -21,6 +21,9 @@ GithubHelperBot::GithubHelperBot(const std::string &token) : token(token) {
     onCallbackQueryPullRequestStatistics(bot, mainKeyboard);
     onCallbackQueryIssueStatistics(bot, mainKeyboard);
 
+    onCallbackQueryAddNewRecordToFavourites(bot, mainKeyboard);
+    onCallbackQueryshowFavouriteRecords(bot, mainKeyboard);
+
     signal(SIGINT, [](int s) {
         std::cout << "SIGINT got" << std::endl;
         exit(0);
@@ -143,24 +146,24 @@ TgBot::InlineKeyboardMarkup::Ptr GithubHelperBot::setUpSearchMenu() {
 
 TgBot::InlineKeyboardMarkup::Ptr GithubHelperBot::setUpFavouritesMenu() {
     TgBot::InlineKeyboardButton::Ptr addNewLinkButton(new TgBot::InlineKeyboardButton);
-    addNewLinkButton->text = "Добавить новую ссылку";
-    addNewLinkButton->callbackData = "addNewLink";
+    addNewLinkButton->text = "Добавить новую запись";
+    addNewLinkButton->callbackData = "addNewRecord";
 
     TgBot::InlineKeyboardButton::Ptr deleteLinkButton(new TgBot::InlineKeyboardButton);
-    deleteLinkButton->text = "Удалить ссылку";
-    deleteLinkButton->callbackData = "deleteLink";
+    deleteLinkButton->text = "Удалить запись";
+    deleteLinkButton->callbackData = "deleteRecord";
 
     TgBot::InlineKeyboardButton::Ptr editLinkButton(new TgBot::InlineKeyboardButton);
-    editLinkButton->text = "Редактировать ссылку";
-    editLinkButton->callbackData = "editLink";
+    editLinkButton->text = "Редактировать запись";
+    editLinkButton->callbackData = "editRecord";
 
     TgBot::InlineKeyboardButton::Ptr exitFavouritesButton(new TgBot::InlineKeyboardButton);
     exitFavouritesButton->text = "Отмена";
     exitFavouritesButton->callbackData = "exitFavourites";
 
     TgBot::InlineKeyboardButton::Ptr showFavouritesLinkButton(new TgBot::InlineKeyboardButton);
-    showFavouritesLinkButton->text = "Показать список сохраненных ссылок";
-    showFavouritesLinkButton->callbackData = "showFavouritesLink";
+    showFavouritesLinkButton->text = "Показать список сохраненных записей";
+    showFavouritesLinkButton->callbackData = "showFavouritesRecord";
 
 
     std::vector<TgBot::InlineKeyboardButton::Ptr> favouritesRow0;
@@ -277,6 +280,26 @@ void GithubHelperBot::setUpInputParameters(TgBot::Bot &bot) {
             issueNumber = std::stoi(temp);
             std::cout << "issueNumber: " << issueNumber << std::endl;
             bot.getApi().sendMessage(message->chat->id, "Введен номер issue: " + temp);
+        }
+    });
+
+    bot.getEvents().onAnyMessage([&bot, this](TgBot::Message::Ptr message){
+        std::string tag = "Ссылка: ";
+        if (StringTools::startsWith(message->text, tag)) {
+            std::cout << "User wrote: " << message->text << std::endl;
+            link = message->text.erase(0, tag.size());
+            std::cout << "link: " << link << std::endl;
+            bot.getApi().sendMessage(message->chat->id, "Введена ссылка: " + link);
+        }
+    });
+
+    bot.getEvents().onAnyMessage([&bot, this](TgBot::Message::Ptr message){
+        std::string tag = "Описание: ";
+        if (StringTools::startsWith(message->text, tag)) {
+            std::cout << "User wrote: " << message->text << std::endl;
+            description = message->text.erase(0, tag.size());
+            std::cout << "description: " << description << std::endl;
+            bot.getApi().sendMessage(message->chat->id, "Введено описание: " + description);
         }
     });
 }
@@ -539,5 +562,92 @@ void GithubHelperBot::onCallbackQueryIssueStatistics(TgBot::Bot &bot, TgBot::Inl
     });
 }
 
+void GithubHelperBot::onCallbackQueryAddNewRecordToFavourites(TgBot::Bot &bot,
+                                                              TgBot::InlineKeyboardMarkup::Ptr &keyboard) {
+    bot.getEvents().onCallbackQuery([&bot, &keyboard, this](TgBot::CallbackQuery::Ptr query) {
+        if (StringTools::startsWith(query->data, "addNewRecord")) {
+            try {
+                pqxx::connection connection("dbname = GithubHelperBot \
+                            user = andrey \
+                            password = 12345 \
+                            hostaddr = 127.0.0.1 \
+                            port = 5433");
+                if (connection.is_open()) {
+                    std::cout << "Opened database successfully: " << connection.dbname() << std::endl;
+                } else {
+                    std::cout << "Can't open database" << std::endl;
+                    throw std::exception();
+                }
 
+                if (link.empty()) {
+                    bot.getApi().sendMessage(query->message->chat->id, "Введите ссылку и описание ссылки для вставки новой записи");
+                    connection.close();
+                    return;
+                }
+
+                std::string sql = "INSERT INTO " + tableName + " (\"telegramUserID\", link, \"description\")" \
+                                  "VALUES (" + std::to_string(query->message->chat->id) + ", \'" + link + "\', \'" + description + "\');" ;
+
+                pqxx::work transaction(connection);
+                transaction.exec(sql);
+                transaction.commit();
+                connection.close();
+
+                std::cout << "Records added successfully" << std::endl;
+                bot.getApi().sendMessage(query->message->chat->id, "Успешно добавлена запись с ссылкой: "
+                    + link + " и описанием: " + description);
+
+            }
+            catch (const std::exception &exception) {
+                std::cerr << exception.what() << "\nПроизошла ошибка при вставке новой любимой записи" << std::endl;
+                bot.getApi().sendMessage(query->message->chat->id, "Произошла ошибка при вставке новой любимой записи");
+            }
+        }
+    });
+}
+
+void GithubHelperBot::onCallbackQueryshowFavouriteRecords(TgBot::Bot &bot, TgBot::InlineKeyboardMarkup::Ptr &keyboard) {
+    bot.getEvents().onCallbackQuery([&bot, &keyboard, this](TgBot::CallbackQuery::Ptr query) {
+        if (StringTools::startsWith(query->data, "showFavouritesRecord")) {
+            try {
+                pqxx::connection connection("dbname = GithubHelperBot \
+                            user = andrey \
+                            password = 12345 \
+                            hostaddr = 127.0.0.1 \
+                            port = 5433");
+                if (connection.is_open()) {
+                    std::cout << "Opened database successfully: " << connection.dbname() << std::endl;
+                } else {
+                    std::cout << "Can't open database" << std::endl;
+                    throw std::exception();
+                }
+
+                std::string sql = "SELECT link, \"description\" "
+                                  "FROM " + tableName + ""
+                                  "WHERE \"telegramUserID\" = " + std::to_string(query->message->chat->id) + ";";
+
+                pqxx::work transaction(connection);
+                pqxx::result result = transaction.exec(sql);
+                transaction.commit();
+                connection.close();
+
+                int count = 1;
+                std::string resultString;
+                for (pqxx::result::const_iterator c = result.begin(); c != result.end(); ++c) {
+                    resultString += std::to_string(count) + ") ссылка: " + c[0].as<std::string>()
+                            + ", описание: " + c[1].as<std::string>() + "\n";
+                    count++;
+                }
+
+                std::cout << "All records showed successfully" << std::endl;
+                bot.getApi().sendMessage(query->message->chat->id, resultString);
+
+            }
+            catch (const std::exception &exception) {
+                std::cerr << exception.what() << "\nПроизошла ошибка при выводе списка всех записей" << std::endl;
+                bot.getApi().sendMessage(query->message->chat->id, "Произошла ошибка при выводе списка всех записей");
+            }
+        }
+    });
+}
 
